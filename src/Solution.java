@@ -9,92 +9,75 @@ public class Solution {
     public int[] findOrder(int numCourses, int[][] prerequisites) {
 
 
-        Map<Integer,ArrayList<Integer>> map = getMap(prerequisites);
+        List<Integer>[] map = getMap(numCourses,prerequisites);
 
-        Map<Integer,Integer> indegree = getIndegree(prerequisites);
+        int[] indegree = getIndegree(numCourses,prerequisites);
 
-        ArrayList<Integer> start = getStart(numCourses,indegree);
+        int [] order = getOrder(numCourses,map,indegree);
 
-        ArrayList<Integer> order = getOrder(map,indegree,start);
-
-        if (order.size() == numCourses){
-            int [] arrOrder = new int[order.size()];
-            for(int i = 0 ; i < order.size() ; i++){
-                arrOrder[i]  = order.get(i);
-            }
-            return arrOrder;
-        }
-
-        return new int[0];
+        return order;
 
     }
 
 
-    public Map<Integer,ArrayList<Integer>> getMap(int[][] prerequisites){
+    public List<Integer>[] getMap(int numCourses, int[][] prerequisites){
 
-        Map<Integer,ArrayList<Integer>> map = new HashMap<>();
+        List<Integer>[] map = new ArrayList[numCourses];
+
+        for(int i = 0 ; i < numCourses ; i++){
+            map[i] = new ArrayList<>();
+        }
 
         for(int i = 0 ; i < prerequisites.length ; i++){
             int start = prerequisites[i][1];
             int end = prerequisites[i][0];
-            if(!map.containsKey(start)){
-                map.put(start,new ArrayList<>());
-                map.get(start).add(end);
-            }
-            else{
-                map.get(start).add(end);
-            }
+            map[start].add(end);
         }
         return map;
     }
 
-    public Map<Integer,Integer> getIndegree(int[][] prerequisites){
+    public int [] getIndegree(int numCourses , int[][] prerequisites){
 
-        Map<Integer,Integer> indegree = new HashMap<>();
+        int [] indegree = new int[numCourses];
 
         for(int i = 0 ; i < prerequisites.length ; i++){
             int end = prerequisites[i][0];
-            if(!indegree.containsKey(end)){
-                indegree.put(end,1);
-            }else{
-                indegree.put(end,indegree.get(end)+1);
-            }
+            indegree[end]++;
         }
         return indegree;
     }
 
-    public ArrayList<Integer> getStart(int numCourses, Map<Integer,Integer> indegree){
 
-        ArrayList<Integer> start = new ArrayList<>();
+    public int [] getOrder(int numCourses,List<Integer>[] map,int[] indegree){
 
-        for(int i = 0 ; i < numCourses ; i++){
-            if(!indegree.containsKey(i)){
-                start.add(i);
+        Queue<Integer> queue = new LinkedList<>();
+
+        for(int i = 0 ; i < indegree.length; i++){
+            if(indegree[i] == 0){
+                queue.offer(i);
             }
         }
-        return start;
 
-    }
-
-    public ArrayList<Integer> getOrder(Map<Integer,ArrayList<Integer>> map,Map<Integer,Integer> indegree,ArrayList<Integer> start){
-
-        Queue<Integer> queue = new LinkedList<>(start);
-        ArrayList<Integer> order = new ArrayList<>(start);
+        int [] order = new int [numCourses];
+        int count = 0;
 
         while(!queue.isEmpty()){
             int head = queue.poll();
-            if(!map.containsKey(head)){
-                continue;
-            }
-            for(int next : map.get(head)){
-                indegree.put(next,indegree.get(next)-1);
-                if(indegree.get(next) == 0){
+            order[count] = head;
+            count++;
+            for(int next : map[head]){
+                indegree[next]--;
+                if(indegree[next] == 0){
                     queue.offer(next);
-                    order.add(next);
                 }
             }
         }
-        return order;
+
+        if(count == numCourses){
+            return order;
+        }
+
+        return new int[0];
     }
 
 }
